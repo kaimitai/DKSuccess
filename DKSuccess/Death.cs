@@ -4,21 +4,36 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DKSuccess
-{
-    class Death : IComparable<Death>
-    {
+namespace DKSuccess {
+    class Death : IComparable<Death> {
 
         int Level;
         int Board;
 
         public Death(string death) {
             try {
-                Level = int.Parse(death.Substring(0, 1));
-                Board = int.Parse(death.Substring(2, 1));
-            } catch (Exception ex) {
+
+                if (death.Contains("-")) {
+                    List<string> ds = death.Split('-').ToList();
+                    Level = int.Parse(ds[0]);
+                    Board = int.Parse(ds[1]);
+                }
+                else {
+                    Level = int.Parse(death.Substring(0, 1));
+                    Board = int.Parse(death.Substring(2, 1));
+                }
+            }
+            catch (Exception ex) {
                 throw new Exception("Could not instantiate Death from string " + death + ". Expected form; \"L-B\"" + Environment.NewLine + "Exception message: " + ex.Message);
             }
+        }
+
+        public int GetLevel() {
+            return (Level);
+        }
+
+        public int GetBoard() {
+            return (Board);
         }
 
         public Death(int lvl, int board) {
@@ -48,8 +63,9 @@ namespace DKSuccess
         }
 
         // Check if a death fulfils the criteria given
-        public bool IsType(int minLevel, int maxLevel, char boardType = 'A') {
-            if (Level < minLevel || Level > maxLevel)
+        public bool Fulfills(int minLevel, int maxLevel, char boardType = 'A') {
+            // we don't count a death outside the given range as a fail, nor do we count deaths on the kill screen (lvl 22-1)
+            if (Level < minLevel || Level > maxLevel || Level == 22)
                 return (false);
 
             if (boardType == 'A' || GetBoardType() == boardType)
@@ -75,5 +91,6 @@ namespace DKSuccess
             else
                 return ('B');
         }
+
     }
 }
