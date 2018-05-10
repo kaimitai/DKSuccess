@@ -45,7 +45,7 @@ namespace DKSuccess {
                 fileContents.Add(header);
 
                 foreach (DateTime gDate in result.Keys) {
-                    string dataItem = gDate.ToString("yyyy-MM-dd") + ",";
+                    string dataItem = gDate.ToString("yyyy-MM-dd HH:mm:ss") + ",";
 
                     foreach (string s in result[gDate].Keys) {
                         dataItem += ((double)result[gDate][s].Item1 / (double)result[gDate][s].Item2).ToString("F3",CultureInfo.InvariantCulture) + ",";
