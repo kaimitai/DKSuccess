@@ -6,19 +6,55 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DKSuccess {
+namespace DKSuccess
+{
 
-    class DKSuccess {
+    class DKSuccess
+    {
+        const string cmdAdd = "add";
+        const string cmdExport = "export";
+
+        private static readonly string welcomeText = "DKSuccess: A database-driven command-line tool for keeping track of Donkey Kong progression" + Environment.NewLine + "See DKSuccess.pdf for usage instructions." + Environment.NewLine;
+        private static readonly List<string> commands = new List<string>() { cmdAdd, cmdExport };
+
         static void Main(string[] args) {
-            List<string> argList = args.ToList();
+            Console.WriteLine(welcomeText);
 
-            if (argList.Count() < 2)
+            Config config = new Config("config.xml");
+            List<string> initArgs = new List<string>();
+
+            foreach (string arg in args) {
+                string tmpArg = arg.Trim();
+
+                if (tmpArg.StartsWith("@")) {
+                    string replacedParams = config.GetParameterValue(tmpArg.Substring(1, tmpArg.Length - 1));
+                    while (replacedParams.Contains("  "))
+                        replacedParams = replacedParams.Replace("  ", " ");
+                    initArgs.Add(replacedParams);
+                } else
+                    initArgs.Add(tmpArg.Trim());
+            }
+
+            string arguments = string.Join(" ", initArgs);
+
+            List<string> argList = arguments.Split(' ').ToList();
+
+            if (argList.Count() == 0 || arguments.Trim() == string.Empty) {
+                Console.WriteLine("Missing command and arguments.");
                 return;
+            } else if (argList.Count() == 1) {
+                if (commands.Contains(argList[0].Trim().ToLower()))
+                    Console.WriteLine("Primary command " + argList[0].Trim() + " requires parameters.");
+                else
+                    Console.WriteLine("Primary command " + argList[0].Trim() + " is not valid.");
+
+                return;
+            }
 
             Database db = new Database();
             string mainArgument = argList[0].Trim().ToLower();
 
-            if (mainArgument == "add") {
+            if (mainArgument == cmdAdd) {
                 string gameString = argList[1].Trim();
 
                 if (argList.Count() > 2)
@@ -28,11 +64,10 @@ namespace DKSuccess {
                 db.AddGame(addedGame);
                 db.Save();
                 Console.WriteLine("Added to database: Game with deaths on " + addedGame.GetDeathString() + " and score " + (addedGame.GetScore() == null ? "NULL" : addedGame.GetScore().ToString()));
-            }
-            else if (mainArgument == "export") {
-                DateTime minDate = DateTime.Parse("2018-01-01");
-                DateTime maxDate = DateTime.Parse("2018-12-31");
-                string granularity = argList[2].Trim().ToUpper();
+            } else if (mainArgument == cmdExport) {
+                string granularity = (argList.Count()>=3 ? argList[2].Trim().ToUpper() : config.GetDefaultGranularity());
+                DateTime minDate = (argList.Count() >= 4 ? DateTime.Parse(argList[3].Trim().ToUpper()) : config.GetDefaultFromDate());
+                DateTime maxDate = (argList.Count() >= 5 ? DateTime.Parse(argList[4].Trim().ToUpper()) : config.GetDefaultToDate());
 
                 Dictionary<DateTime, Dictionary<string, Tuple<int, int>>> result = db.GetStatistics(argList[1].Trim(), granularity, minDate, maxDate);
 
@@ -48,7 +83,7 @@ namespace DKSuccess {
                     string dataItem = gDate.ToString("yyyy-MM-dd HH:mm:ss") + ",";
 
                     foreach (string s in result[gDate].Keys) {
-                        dataItem += ((double)result[gDate][s].Item1 / (double)result[gDate][s].Item2).ToString("F3",CultureInfo.InvariantCulture) + ",";
+                        dataItem += ((double)result[gDate][s].Item1 / (double)result[gDate][s].Item2).ToString("F3", CultureInfo.InvariantCulture) + ",";
                     }
 
                     fileContents.Add(dataItem.Substring(0, dataItem.Length - 1));

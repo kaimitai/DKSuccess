@@ -19,8 +19,13 @@ namespace DKSuccess {
                     Board = int.Parse(ds[1]);
                 }
                 else {
-                    Level = int.Parse(death.Substring(0, 1));
-                    Board = int.Parse(death.Substring(2, 1));
+                    if (death.Length == 2) {
+                        Level = int.Parse(death.Substring(0, 1));
+                        Board = int.Parse(death.Substring(2, 1));
+                    } else {
+                        Level = int.Parse(death.Substring(0, 2));
+                        Board = int.Parse(death.Substring(3, 1));
+                    }
                 }
             }
             catch (Exception ex) {
@@ -64,7 +69,7 @@ namespace DKSuccess {
 
         // Check if a death fulfils the criteria given
         public bool Fulfills(int minLevel, int maxLevel, char boardType = 'A') {
-            // we don't count a death outside the given range as a fail, nor do we count deaths on the kill screen (lvl 22-1)
+            // we don't count a death outside the given range as a fail, nor do we ever count deaths on the kill screen (lvl 22-1)
             if (Level < minLevel || Level > maxLevel || Level == 22)
                 return (false);
 
