@@ -21,10 +21,10 @@ namespace DKSuccess {
                 else {
                     if (death.Length == 2) {
                         Level = int.Parse(death.Substring(0, 1));
-                        Board = int.Parse(death.Substring(2, 1));
+                        Board = int.Parse(death.Substring(1, 1));
                     } else {
                         Level = int.Parse(death.Substring(0, 2));
-                        Board = int.Parse(death.Substring(3, 1));
+                        Board = int.Parse(death.Substring(2, 1));
                     }
                 }
             }
